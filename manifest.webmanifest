@@ -1,0 +1,25 @@
+{
+  "name": "手机照片评价器",
+  "short_name": "照片评价器",
+  "description": "在手机本地分析照片质量，给出严格评分和建设性建议。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f7f7",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
