@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="照片评价器">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>手机照片评价器</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #f4f7f7;
+      --surface: #ffffff;
+      --surface-soft: #edf4f3;
+      --ink: #132124;
+      --muted: #667476;
+      --line: #d8e2e3;
+      --accent: #0f766e;
+      --accent-dark: #0a5c55;
+      --warn: #9a570d;
+      --shadow: 0 10px 24px rgba(15, 33, 36, .08);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .shell {
+      max-width: 720px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) 14px calc(82px + env(safe-area-inset-bottom));
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: 0 -14px;
+      padding: 12px 14px;
+      background: rgba(244, 247, 247, .94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(216, 226, 227, .8);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, #0f766e, #193c44 65%, #b45309);
+      flex: 0 0 auto;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .status {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero {
+      margin-top: 14px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 12px;
+      cursor: pointer;
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+
+    .btn.primary {
+      color: white;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .stat {
+      padding: 11px 10px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      min-height: 68px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 20px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      margin-top: 12px;
+      padding: 30px 18px;
+      text-align: center;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px dashed #a7b9bb;
+      border-radius: 12px;
+    }
+
+    .empty svg {
+      width: 38px;
+      height: 38px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .empty b {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .card {
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .preview {
+      background: #0f1718;
+      min-height: 230px;
+      display: grid;
+      place-items: center;
+    }
+
+    .preview img {
+      width: 100%;
+      max-height: 72vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .content {
+      padding: 14px;
+    }
+
+    .title-row {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .name {
+      min-width: 0;
+    }
+
+    .name h3 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .name small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .score {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 6px solid #cfebe7;
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .level {
+      margin: 12px 0;
+      padding: 10px 11px;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: #f6faf9;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 9px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .metric-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric-head span:last-child {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar {
+      height: 7px;
+      margin: 8px 0;
+      border-radius: 999px;
+      background: #e6eeee;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .metric p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .notes {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .note {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fbfb;
+    }
+
+    .note h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .note ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #334447;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .note li + li {
+      margin-top: 5px;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, .96);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .bottom-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr 48px;
+      gap: 9px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (min-width: 680px) {
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .notes {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 16l4.8-6 3.8 4.6 2.6-3.2L20 16"/><path d="M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+        </div>
+        <div>
+          <h1>照片评价器</h1>
+          <div class="status" id="status">等待导入照片</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h2>本地分析照片质量</h2>
+      <p>按清晰度、曝光、对比、色彩、构图和分辨率给出严格评分，并生成可执行建议。照片只在手机本地处理。</p>
+      <div class="controls">
+        <button class="btn primary" id="pickPhotos" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          选择照片
+        </button>
+        <button class="btn" id="installBtn" type="button" hidden>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          安装
+        </button>
+      </div>
+    </section>
+
+    <input class="hidden" id="fileInput" type="file" accept="image/*" multiple>
+
+    <section class="stats">
+      <div class="stat"><b id="count">0</b><span>照片</span></div>
+      <div class="stat"><b id="average">--</b><span>平均分</span></div>
+      <div class="stat"><b id="best">--</b><span>最高分</span></div>
+    </section>
+
+    <section class="empty" id="empty">
+      <svg viewBox="0 0 24 24"><path d="M4 16l4.8-6 3.8 4.6 2.6-3.2L20 16"/><path d="M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+      <b>选择手机相册里的照片</b>
+      <span>一次建议 5-20 张，高像素照片会稍慢。</span>
+    </section>
+
+    <section class="results" id="results"></section>
+  </div>
+
+  <nav class="bottom-bar">
+    <div class="bottom-inner">
+      <button class="btn primary" id="pickPhotosBottom" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        导入
+      </button>
+      <button class="btn" id="exportBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        报告
+      </button>
+      <button class="btn" id="clearBtn" type="button" disabled aria-label="清空">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    const appState = { reports: [], busy: false, deferredInstall: null };
+    const refs = {
+      status: document.getElementById("status"),
+      fileInput: document.getElementById("fileInput"),
+      pickPhotos: document.getElementById("pickPhotos"),
+      pickPhotosBottom: document.getElementById("pickPhotosBottom"),
+      installBtn: document.getElementById("installBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      count: document.getElementById("count"),
+      average: document.getElementById("average"),
+      best: document.getElementById("best"),
+      empty: document.getElementById("empty"),
+      results: document.getElementById("results")
+    };
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      appState.deferredInstall = event;
+      refs.installBtn.hidden = false;
+    });
+
+    refs.installBtn.addEventListener("click", async () => {
+      if (!appState.deferredInstall) return;
+      appState.deferredInstall.prompt();
+      await appState.deferredInstall.userChoice.catch(() => {});
+      appState.deferredInstall = null;
+      refs.installBtn.hidden = true;
+    });
+
+    refs.pickPhotos.addEventListener("click", () => refs.fileInput.click());
+    refs.pickPhotosBottom.addEventListener("click", () => refs.fileInput.click());
+    refs.fileInput.addEventListener("change", event => addFiles(event.target.files));
+    refs.clearBtn.addEventListener("click", clearAll);
+    refs.exportBtn.addEventListener("click", () => downloadText("照片评价报告.md", toMarkdown(), "text/markdown;charset=utf-8"));
+
+    function clamp(value, lo = 0, hi = 100) {
+      return Math.max(lo, Math.min(hi, value));
+    }
+
+    function scoreRange(value, goodMin, goodMax, hardMin, hardMax) {
+      if (value >= goodMin && value <= goodMax) return 100;
+      if (value < goodMin) return clamp(((value - hardMin) / (goodMin - hardMin)) * 100);
+      return clamp(((hardMax - value) / (hardMax - goodMax)) * 100);
+    }
+
+    function levelFromScore(score) {
+      if (score >= 90) return "优秀：可进入作品集或参赛候选";
+      if (score >= 80) return "良好：完成度较高，有明确作品感";
+      if (score >= 70) return "不错：基础扎实，但还需要更强取舍";
+      if (score >= 60) return "合格记录：主体清楚，但作品完成度一般";
+      if (score >= 50) return "普通记录：技术或构图问题较明显";
+      return "较弱：技术或取舍问题较多";
+    }
+
+    function round1(n) {
+      return Math.round(n * 10) / 10;
+    }
+
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => resolve({ img, url });
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error(file.name));
+        };
+        img.src = url;
+      });
+    }
+
+    function drawImage(img, maxSide) {
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const width = Math.max(1, Math.round(img.naturalWidth * scale));
+      const height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, width, height);
+      return { width, height, imageData: ctx.getImageData(0, 0, width, height) };
+    }
+
+    function luminance(r, g, b) {
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function computeStats(imageData) {
+      const data = imageData.data;
+      const count = data.length / 4;
+      const gray = new Float32Array(count);
+      let lumSum = 0, lumSq = 0, shadow = 0, highlight = 0, clippedShadow = 0, clippedHighlight = 0;
+      let satSum = 0, highSat = 0, rSum = 0, gSum = 0, bSum = 0;
+
+      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        const y = luminance(r, g, b);
+        gray[p] = y;
+        lumSum += y;
+        lumSq += y * y;
+        rSum += r;
+        gSum += g;
+        bSum += b;
+        if (y < 22) shadow++;
+        if (y > 238) highlight++;
+        if (y < 5) clippedShadow++;
+        if (y > 250) clippedHighlight++;
+        const mx = Math.max(r, g, b);
+        const mn = Math.min(r, g, b);
+        const sat = mx === 0 ? 0 : (mx - mn) / mx;
+        satSum += sat;
+        if (sat > 0.72) highSat++;
+      }
+
+      const mean = lumSum / count;
+      const variance = Math.max(0, lumSq / count - mean * mean);
+      const rAvg = rSum / count, gAvg = gSum / count, bAvg = bSum / count;
+
+      return {
+        gray,
+        mean,
+        contrast: Math.sqrt(variance),
+        shadowPct: shadow / count,
+        highlightPct: highlight / count,
+        clippedShadowPct: clippedShadow / count,
+        clippedHighlightPct: clippedHighlight / count,
+        avgSat: satSum / count,
+        highSatPct: highSat / count,
+        castDelta: Math.max(rAvg, gAvg, bAvg) - Math.min(rAvg, gAvg, bAvg)
+      };
+    }
+
+    function laplacianVariance(gray, width, height) {
+      if (width < 3 || height < 3) return 0;
+      let sum = 0, sumSq = 0, n = 0;
+      for (let y = 1; y < height - 1; y++) {
+        const row = y * width;
+        for (let x = 1; x < width - 1; x++) {
+          const i = row + x;
+          const v = 4 * gray[i] - gray[i - 1] - gray[i + 1] - gray[i - width] - gray[i + width];
+          sum += v;
+          sumSq += v * v;
+          n++;
+        }
+      }
+      const mean = sum / n;
+      return Math.max(0, sumSq / n - mean * mean);
+    }
+
+    function compositionScore(gray, width, height) {
+      let total = 0, cx = 0, cy = 0, left = 0, right = 0, top = 0, bottom = 0;
+      for (let y = 1; y < height - 1; y++) {
+        const row = y * width;
+        for (let x = 1; x < width - 1; x++) {
+          const i = row + x;
+          const edge = Math.abs(gray[i + 1] - gray[i - 1]) + Math.abs(gray[i + width] - gray[i - width]);
+          const midtoneBoost = 1 - Math.abs(gray[i] - 128) / 160;
+          const weight = Math.max(0, edge * (0.65 + 0.35 * midtoneBoost));
+          total += weight;
+          cx += x * weight;
+          cy += y * weight;
+          if (x < width / 2) left += weight; else right += weight;
+          if (y < height / 2) top += weight; else bottom += weight;
+        }
+      }
+      if (total <= 0) return { score: 45, value: "画面缺少明显视觉重心。" };
+      const nx = cx / total / width;
+      const ny = cy / total / height;
+      const thirds = [[1/3, 1/3], [2/3, 1/3], [1/3, 2/3], [2/3, 2/3], [0.5, 0.5]];
+      const nearest = Math.min(...thirds.map(([tx, ty]) => Math.hypot(nx - tx, ny - ty)));
+      const thirdsScore = clamp(100 - nearest * 260);
+      const lr = Math.max(left, right) ? Math.min(left, right) / Math.max(left, right) : 0;
+      const tb = Math.max(top, bottom) ? Math.min(top, bottom) / Math.max(top, bottom) : 0;
+      const balanceScore = (lr * 0.65 + tb * 0.35) * 100;
+      const edgePenalty = nx < 0.16 || nx > 0.84 || ny < 0.13 || ny > 0.87 ? 18 : 0;
+      return {
+        score: clamp(thirdsScore * 0.65 + balanceScore * 0.35 - edgePenalty),
+        value: `视觉重心 (${nx.toFixed(2)}, ${ny.toFixed(2)})，左右平衡 ${lr.toFixed(2)}`
+      };
+    }
+
+    async function analyzeFile(file) {
+      const { img, url } = await loadImage(file);
+      const main = drawImage(img, 820);
+      const stats = computeStats(main.imageData);
+      const sharp = drawImage(img, 520);
+      const sharpStats = computeStats(sharp.imageData);
+      const lapVar = laplacianVariance(sharpStats.gray, sharp.width, sharp.height);
+      const compDraw = drawImage(img, 280);
+      const compStats = computeStats(compDraw.imageData);
+      const comp = compositionScore(compStats.gray, compDraw.width, compDraw.height);
+
+      const exposureBase = scoreRange(stats.mean, 92, 164, 35, 220);
+      const exposureScore = clamp(exposureBase - (stats.shadowPct * 92 + stats.highlightPct * 120 + stats.clippedShadowPct * 145 + stats.clippedHighlightPct * 170));
+      const contrastScore = scoreRange(stats.contrast, 42, 78, 15, 115);
+      const sharpnessScore = clamp(5 + Math.log10(Math.max(lapVar, 1)) * 25);
+      const colorScore = clamp(scoreRange(stats.avgSat, 0.16, 0.46, 0.03, 0.78) - stats.highSatPct * 55 - Math.max(0, stats.castDelta - 24) * 0.95);
+      const resolutionScore = clamp(35 + Math.min((img.naturalWidth * img.naturalHeight) / (6000 * 4000), 1) * 65);
+
+      const metrics = [
+        { name: "清晰度", score: sharpnessScore, value: `拉普拉斯方差 ${lapVar.toFixed(1)}` },
+        { name: "曝光", score: exposureScore, value: `平均亮度 ${stats.mean.toFixed(1)}，暗部 ${(stats.shadowPct * 100).toFixed(1)}%，亮部 ${(stats.highlightPct * 100).toFixed(1)}%` },
+        { name: "对比度", score: contrastScore, value: `亮度标准差 ${stats.contrast.toFixed(1)}` },
+        { name: "色彩", score: colorScore, value: `平均饱和度 ${stats.avgSat.toFixed(2)}，高饱和 ${(stats.highSatPct * 100).toFixed(1)}%，偏色差 ${stats.castDelta.toFixed(1)}` },
+        { name: "构图", score: comp.score, value: comp.value },
+        { name: "分辨率", score: resolutionScore, value: `${img.naturalWidth} x ${img.naturalHeight}` }
+      ].map(item => ({ ...item, score: round1(item.score) }));
+
+      const weights = { "清晰度": 0.14, "曝光": 0.24, "对比度": 0.12, "色彩": 0.18, "构图": 0.27, "分辨率": 0.05 };
+      let issuePenalty = 0;
+      if (comp.score < 65) issuePenalty += 4;
+      if (exposureScore < 75) issuePenalty += 3;
+      if (colorScore < 70) issuePenalty += 3;
+      if (stats.contrast > 88) issuePenalty += 2;
+      if (stats.highSatPct > 0.12) issuePenalty += 2;
+      const overall = round1(clamp(metrics.reduce((sum, item) => sum + item.score * weights[item.name], 0) - issuePenalty));
+
+      const strengths = [];
+      const suggestions = [];
+      if (sharpnessScore >= 75) strengths.push("主体细节较清晰，抖动或虚焦风险较低。");
+      else if (sharpnessScore < 58) suggestions.push("优先检查对焦点和快门速度，长焦或动物题材建议提高快门。");
+      if (exposureScore >= 75) strengths.push("曝光控制较稳，高光和暗部保留相对均衡。");
+      else {
+        if (stats.highlightPct > 0.06 || stats.clippedHighlightPct > 0.015) suggestions.push("亮部有溢出风险，拍天空、白墙、反光物时可降低 0.3-1 档曝光。");
+        if (stats.shadowPct > 0.12 || stats.clippedShadowPct > 0.03) suggestions.push("暗部压得偏重，后期可适度抬阴影，但要控制噪点。");
+      }
+      if (contrastScore >= 72) strengths.push("明暗反差有力度，画面层次比较明确。");
+      else if (stats.contrast < 35) suggestions.push("画面对比偏低，可轻微增加曲线、去雾或局部对比。");
+      else if (stats.contrast > 88) suggestions.push("对比偏硬，建议降低全局对比，改用局部加深/减淡突出主体。");
+      if (colorScore >= 75) strengths.push("色彩控制较自然，没有明显过艳或偏色问题。");
+      else {
+        if (stats.avgSat > 0.56 || stats.highSatPct > 0.08) suggestions.push("饱和度偏高，建议控制蓝天、绿色植物和金色灯光。");
+        if (stats.castDelta > 36) suggestions.push("存在明显色偏，先校准白平衡再做风格化调色。");
+      }
+      if (comp.score >= 75) strengths.push("视觉重心比较清楚，主体位置和画面平衡较好。");
+      else if (comp.score < 60) suggestions.push("构图主次不够稳，拍摄时先确定唯一主体并清理边缘干扰。");
+      if (resolutionScore < 45) suggestions.push("图片分辨率较低，会限制裁切、打印和细节判断。");
+      if (!strengths.length) strengths.push("画面具备基本记录价值，但还需要提高技术完成度。");
+      if (!suggestions.length) suggestions.push("技术指标比较均衡，下一步可提升选题、等待更好的光线和强化个人风格。");
+
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        name: file.name,
+        url,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        score: overall,
+        level: levelFromScore(overall),
+        metrics,
+        strengths: strengths.slice(0, 4),
+        suggestions: suggestions.slice(0, 6)
+      };
+    }
+
+    async function addFiles(files) {
+      if (appState.busy) return;
+      const items = [...files].filter(file => file.type.startsWith("image/"));
+      if (!items.length) return;
+      appState.busy = true;
+      updateButtons();
+      for (let i = 0; i < items.length; i++) {
+        refs.status.textContent = `正在分析 ${i + 1}/${items.length}：${items[i].name}`;
+        try {
+          appState.reports.push(await analyzeFile(items[i]));
+          render();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      appState.busy = false;
+      refs.status.textContent = `已完成 ${items.length} 张照片`;
+      render();
+    }
+
+    function sortedReports() {
+      return [...appState.reports].sort((a, b) => b.score - a.score);
+    }
+
+    function render() {
+      const reports = sortedReports();
+      refs.count.textContent = reports.length;
+      refs.average.textContent = reports.length ? round1(reports.reduce((sum, r) => sum + r.score, 0) / reports.length) : "--";
+      refs.best.textContent = reports.length ? reports[0].score : "--";
+      refs.empty.classList.toggle("hidden", reports.length > 0);
+      refs.results.innerHTML = reports.map(reportHtml).join("");
+      updateButtons();
+    }
+
+    function updateButtons() {
+      refs.pickPhotos.disabled = appState.busy;
+      refs.pickPhotosBottom.disabled = appState.busy;
+      refs.exportBtn.disabled = appState.busy || appState.reports.length === 0;
+      refs.clearBtn.disabled = appState.busy || appState.reports.length === 0;
+    }
+
+    function reportHtml(report) {
+      return `
+        <article class="card">
+          <div class="preview"><img src="${report.url}" alt="${escapeHtml(report.name)}"></div>
+          <div class="content">
+            <div class="title-row">
+              <div class="name"><h3>${escapeHtml(report.name)}</h3><small>${report.width} x ${report.height}</small></div>
+              <div class="score">${report.score}</div>
+            </div>
+            <div class="level">${escapeHtml(report.level)}</div>
+            <div class="metrics">${report.metrics.map(metricHtml).join("")}</div>
+            <div class="notes">
+              <div class="note"><h4>优点</h4><ul>${report.strengths.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>
+              <div class="note"><h4>建议</h4><ul>${report.suggestions.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function metricHtml(metric) {
+      return `
+        <div class="metric">
+          <div class="metric-head"><span>${escapeHtml(metric.name)}</span><span>${metric.score}</span></div>
+          <div class="bar"><i style="--w: ${clamp(metric.score)}%"></i></div>
+          <p>${escapeHtml(metric.value)}</p>
+        </div>
+      `;
+    }
+
+    function toMarkdown() {
+      const reports = sortedReports();
+      const lines = ["# 照片评价报告", ""];
+      reports.forEach((report, index) => lines.push(`${index + 1}. ${report.name} - ${report.score}/100，${report.level}`));
+      lines.push("");
+      reports.forEach(report => {
+        lines.push(`## ${report.name}`, "", `- 综合评分：${report.score}/100`, `- 判断：${report.level}`, `- 尺寸：${report.width} x ${report.height}`, "", "### 优点");
+        report.strengths.forEach(item => lines.push(`- ${item}`));
+        lines.push("", "### 建议");
+        report.suggestions.forEach(item => lines.push(`- ${item}`));
+        lines.push("");
+      });
+      return lines.join("\n");
+    }
+
+    function downloadText(filename, text, type) {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+      appState.reports.forEach(report => URL.revokeObjectURL(report.url));
+      appState.reports = [];
+      refs.status.textContent = "等待导入照片";
+      render();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    render();
+  </script>
+</body>
+</html>
